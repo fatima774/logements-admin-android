@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Page principale apres la connexion -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp"
+    android:background="#1E1E1E">
+
+    <!-- Titre du dashboard -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Console Administrateur"
+        android:textColor="#FFFFFF"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Sous-titre -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Que voulez-vous gerer ?"
+        android:textColor="#AAAAAA"
+        android:textSize="14sp"
+        android:layout_marginBottom="48dp"/>
+
+    <!-- Bouton pour aller sur la page des utilisateurs -->
+    <Button
+        android:id="@+id/buttonUsers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Gerer les utilisateurs"
+        android:backgroundTint="#2E75B6"
+        android:textColor="#FFFFFF"
+        android:padding="16dp"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Bouton pour aller sur la page des logements -->
+    <Button
+        android:id="@+id/buttonLogements"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Gerer les logements"
+        android:backgroundTint="#1F7A4A"
+        android:textColor="#FFFFFF"
+        android:padding="16dp"
+        android:textSize="16sp"
+        android:layout_marginBottom="48dp"/>
+
+    <!-- Bouton de deconnexion -->
+    <Button
+        android:id="@+id/buttonLogout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Se deconnecter"
+        android:backgroundTint="#444444"
+        android:textColor="#FFFFFF"
+        android:padding="12dp"
+        android:textSize="14sp"/>
+
+</LinearLayout>

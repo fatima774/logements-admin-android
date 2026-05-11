@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Page principale de connexion -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp"
+    android:background="#1E1E1E">
+
+    <!-- Titre de l'application -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Logements Etudiants"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Sous-titre -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Console Administrateur"
+        android:textColor="#AAAAAA"
+        android:textSize="14sp"
+        android:layout_marginBottom="40dp"/>
+
+    <!-- Champ pour le nom d'utilisateur -->
+    <EditText
+        android:id="@+id/editTextUsername"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nom d'utilisateur"
+        android:textColorHint="#AAAAAA"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#444444"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"
+        android:inputType="text"/>
+
+    <!-- Champ pour le mot de passe -->
+    <EditText
+        android:id="@+id/editTextPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Mot de passe"
+        android:textColorHint="#AAAAAA"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#444444"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp"
+        android:inputType="textPassword"/>
+
+    <!-- Message d'erreur (cache par defaut) -->
+    <TextView
+        android:id="@+id/textViewError"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textColor="#FF5252"
+        android:textSize="12sp"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"/>
+
+    <!-- Bouton de connexion -->
+    <Button
+        android:id="@+id/buttonLogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Se connecter"
+        android:backgroundTint="#2E75B6"
+        android:textColor="#FFFFFF"
+        android:padding="14dp"
+        android:textSize="16sp"/>
+
+</LinearLayout>
