@@ -96,8 +96,12 @@ class UsersActivity : AppCompatActivity() {
 
             try {
                 // Cree la requete HTTP GET vers la route admin/users
+                val prefs = getSharedPreferences("admin_prefs", MODE_PRIVATE)
+                val token = prefs.getString("token", "") ?: ""
+
                 val request = Request.Builder()
                     .url("$API_URL/admin/users")
+                    .addHeader("Authorization", "Bearer $token")
                     .get()
                     .build()
 
@@ -165,9 +169,14 @@ class UsersActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
 
             try {
-                // Cree la requete HTTP DELETE vers la route admin/users/:id
+                // Recupere le token sauvegarde lors de la connexion
+                val prefs = getSharedPreferences("admin_prefs", MODE_PRIVATE)
+                val token = prefs.getString("token", "") ?: ""
+
+// Cree la requete HTTP DELETE vers la route admin/users/:id
                 val request = Request.Builder()
                     .url("$API_URL/admin/users/$userId")
+                    .addHeader("Authorization", "Bearer $token")
                     .delete()
                     .build()
 

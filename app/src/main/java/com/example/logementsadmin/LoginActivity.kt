@@ -124,9 +124,8 @@ class LoginActivity : AppCompatActivity() {
                         // Connexion reussie - navigue vers le dashboard
                         val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
                         startActivity(intent)
-                        finish()
-
-                    } else {
+                        finish()}
+                    else {
                         // Connexion echouee - affiche le message d'erreur
                         attempts++
                         val errorJson = JSONObject(responseBody)

@@ -164,11 +164,16 @@ class LogementsActivity : AppCompatActivity() {
 
             try {
                 // Cree la requete HTTP DELETE vers la route admin/logements/:id
+                // Recupere le token sauvegarde lors de la connexion
+                val prefs = getSharedPreferences("admin_prefs", MODE_PRIVATE)
+                val token = prefs.getString("token", "") ?: ""
+
+// Cree la requete HTTP DELETE vers la route admin/logements/:id
                 val request = Request.Builder()
                     .url("$API_URL/admin/logements/$logementId")
+                    .addHeader("Authorization", "Bearer $token")
                     .delete()
                     .build()
-
                 // Envoie la requete et recupere la reponse
                 val response = client.newCall(request).execute()
 
