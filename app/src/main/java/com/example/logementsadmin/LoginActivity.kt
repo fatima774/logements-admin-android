@@ -121,10 +121,17 @@ class LoginActivity : AppCompatActivity() {
 
                     // Verifie si la connexion est reussie
                     if (response.isSuccessful) {
+                        // Sauvegarde le token recu pour les requetes suivantes
+                        val json = JSONObject(responseBody)
+                        val token = json.optString("token", "")
+                        val prefs = getSharedPreferences("admin_prefs", MODE_PRIVATE)
+                        prefs.edit().putString("token", token).apply()
+
                         // Connexion reussie - navigue vers le dashboard
                         val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
                         startActivity(intent)
-                        finish()}
+                        finish()
+                    }
                     else {
                         // Connexion echouee - affiche le message d'erreur
                         attempts++
