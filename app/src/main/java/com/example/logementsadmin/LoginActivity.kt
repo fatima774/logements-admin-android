@@ -25,7 +25,19 @@ import okhttp3.RequestBody.Companion.toRequestBody
 // Import pour lire le JSON
 import org.json.JSONObject
 
-// Classe qui gere la page de connexion
+/*
+ * LoginActivity
+ * 
+ * Cette classe gère la page de connexion de l'application.
+ * C'est la première page que l'utilisateur voit en lançant l'app.
+ * 
+ * Son rôle : 
+ * - Afficher un formulaire avec un champ pour le nom d'utilisateur et le mot de passe
+ * - Vérifier les identifiants en envoyant une requête à l'API du serveur
+ * - Sauvegarder le token JWT reçu du serveur pour les futures requêtes
+ * - Bloquer l'accès après 5 tentatives échouées
+ * - Rediriger vers le Dashboard si la connexion réussit
+ */
 class LoginActivity : AppCompatActivity() {
 
     // Declaration des elements de l'interface
@@ -46,7 +58,14 @@ class LoginActivity : AppCompatActivity() {
     // Client HTTP pour faire les requetes vers l'API
     private val client = OkHttpClient()
 
-    // Fonction appelee automatiquement quand la page se cree
+    /*
+     * onCreate() - Fonction appelée automatiquement au démarrage de la page
+     * 
+     * Cette fonction est exécutée une seule fois quand l'utilisateur ouvre l'app.
+     * Elle configure :
+     * - L'interface avec les champs de texte et boutons
+     * - L'événement "clique" du bouton de connexion
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -76,7 +95,16 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    // Fonction qui verifie les identifiants via l'API
+    /*
+     * verifyCredentials() - Vérifie le nom d'utilisateur et le mot de passe auprès du serveur
+     * 
+     * Cette fonction :
+     * - Envoie une requête HTTP POST (avec OkHttpClient) à l'API du serveur
+     * - Inclut le nom d'utilisateur et le mot de passe dans le corps de la requête
+     * - Récupère le token JWT du serveur s'il valide l'accès
+     * - Sauvegarde le token dans SharedPreferences pour le réutiliser plus tard
+     * - Compte les tentatives échouées et bloque après 5 essais
+     */
     private fun verifyCredentials(username: String, password: String) {
 
         // Verifie si le nombre maximum de tentatives est atteint
@@ -93,24 +121,26 @@ class LoginActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
 
             try {
-                // Cree le corps de la requete en JSON
+                // ========== APPEL OkHttp ==========
+                // 1. Créer le corps de la requête en JSON
                 val jsonBody = JSONObject()
                 jsonBody.put("username", username)
                 jsonBody.put("password", password)
 
-                // Definit le type de contenu envoye
+                // 2. Définir le type MIME (JSON dans ce cas)
                 val mediaType = "application/json".toMediaType()
 
-                // Cree le corps de la requete
+                // 3. Convertir le JSON en corps de requête
                 val body = jsonBody.toString().toRequestBody(mediaType)
 
-                // Cree la requete HTTP POST vers la route admin/login
+                // 4. Créer la requête HTTP POST vers le serveur
+                // OkHttpClient est un client HTTP très populaire en Android
                 val request = Request.Builder()
-                    .url("$API_URL/admin/login")
-                    .post(body)
+                    .url("$API_URL/admin/login")  // Envoyer vers la route /admin/login du serveur
+                    .post(body)  // Méthode POST avec le corps JSON
                     .build()
 
-                // Envoie la requete et recupere la reponse
+                // Envoyer la requête et attendre la réponse du serveur
                 val response = client.newCall(request).execute()
 
                 // Lit le contenu de la reponse
@@ -119,13 +149,22 @@ class LoginActivity : AppCompatActivity() {
                 // Revient sur le thread principal pour modifier l'interface
                 withContext(Dispatchers.Main) {
 
-                    // Verifie si la connexion est reussie
+                    // Vérifier si le serveur a accepté les identifiants (code 200, 201, etc.)
                     if (response.isSuccessful) {
-                        // Sauvegarde le token recu pour les requetes suivantes
+                        // ========== GESTION DU TOKEN JWT ==========
+                        // 1. Extraire le token du serveur (il est en JSON dans la réponse)
                         val json = JSONObject(responseBody)
                         val token = json.optString("token", "")
+                        
+                        // ========== SAUVEGARDE AVEC SharedPreferences ==========
+                        // SharedPreferences est un système simple pour sauvegarder des données locales
+                        // dans le téléphone. C'est parfait pour les petites données comme un token JWT.
+                        // 
+                        // Le token JWT contient les informations de l'utilisateur connecté.
+                        // On le sauvegarde pour l'ajouter à TOUTES les futures requêtes HTTP
+                        // (voir UsersActivity et LogementsActivity où on fait : addHeader("Authorization", "Bearer $token")
                         val prefs = getSharedPreferences("admin_prefs", MODE_PRIVATE)
-                        prefs.edit().putString("token", token).apply()
+                        prefs.edit().putString("token", token).apply()  // .apply() sauvegarde le token
 
                         // Connexion reussie - navigue vers le dashboard
                         val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
@@ -152,7 +191,12 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    // Fonction qui affiche un message d'erreur en rouge
+    /*
+     * showError() - Affiche un message d'erreur à l'écran
+     * 
+     * Cette fonction affiche le message en rouge pour montrer à l'utilisateur
+     * que quelque chose s'est mal passé (mauvais identifiant, problème réseau, etc.)
+     */
     private fun showError(message: String) {
         textViewError.text = message
         textViewError.visibility = TextView.VISIBLE

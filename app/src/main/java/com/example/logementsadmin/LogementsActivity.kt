@@ -25,7 +25,19 @@ import okhttp3.Request
 // Import pour lire le JSON
 import org.json.JSONArray
 
-// Classe qui gere la page des logements
+/*
+ * LogementsActivity
+ * 
+ * Cette classe affiche la liste de tous les logements (appartements, maisons, etc.)
+ * enregistrés dans l'application, et permet de les supprimer en appuyant longtemps dessus.
+ * 
+ * Son rôle :
+ * - Charger la liste des logements depuis l'API du serveur
+ * - Afficher chaque logement avec son titre, sa ville et son prix
+ * - Permettre de supprimer un logement avec un clic long
+ * - Gérer le token JWT pour s'authentifier auprès du serveur
+ * - Utiliser SharedPreferences pour stocker et récupérer le token
+ */
 class LogementsActivity : AppCompatActivity() {
 
     // Declaration des elements de l'interface
@@ -45,7 +57,15 @@ class LogementsActivity : AppCompatActivity() {
     // Client HTTP pour faire les requetes vers l'API
     private val client = OkHttpClient()
 
-    // Fonction appelee automatiquement quand la page se cree
+    /*
+     * onCreate() - Fonction appelée automatiquement au démarrage de la page
+     * 
+     * Cette fonction :
+     * - Charge l'interface graphique
+     * - Récupère les éléments (liste, message, bouton retour)
+     * - Définit le comportement du clic long sur les logements pour les supprimer
+     * - Lance le chargement de la liste des logements depuis l'API
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -62,28 +82,36 @@ class LogementsActivity : AppCompatActivity() {
             finish()
         }
 
-        // Quand on clique longtemps sur un logement - propose de le supprimer
+        // Quand l'utilisateur clique longtemps sur un logement de la liste
         listViewLogements.setOnItemLongClickListener { _, _, position, _ ->
-            // Recupere l'identifiant du logement selectionne
+            // Récupérer l'ID du logement à la position cliquée (important pour le supprimer)
             val logementId = logementsIds[position]
 
-            // Affiche une boite de dialogue de confirmation
+            // Afficher une boîte de dialogue (popup) pour confirmer la suppression
             AlertDialog.Builder(this)
                 .setTitle("Supprimer le logement")
                 .setMessage("Voulez-vous supprimer ce logement ?")
                 .setPositiveButton("Supprimer") { _, _ ->
+                    // Si l'utilisateur clique sur "Supprimer", appeler la fonction deleteLogement
                     deleteLogement(logementId, position)
                 }
-                .setNegativeButton("Annuler", null)
+                .setNegativeButton("Annuler", null)  // Annuler la suppression
                 .show()
-            true
+            true  // Indiquer que le clic long a été traité
         }
 
         // Charge la liste des logements au demarrage
         loadLogements()
     }
 
-    // Fonction qui charge tous les logements depuis l'API
+    /*
+     * loadLogements() - Charge la liste de tous les logements depuis l'API
+     * 
+     * Cette fonction :
+     * - Envoie une requête GET au serveur (sans token, car la liste est publique)
+     * - Traite la réponse JSON pour extraire les infos de chaque logement
+     * - Affiche la liste dans l'interface
+     */
     private fun loadLogements() {
 
         // Affiche le message de chargement
@@ -93,13 +121,15 @@ class LogementsActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
 
             try {
-                // Cree la requete HTTP GET vers la route logements
+                // ========== APPEL OkHttp SANS TOKEN ==========
+                // Cette route retourne la liste publique des logements (pas besoin d'authentification)
+                // OkHttpClient gère les connexions, les données réseau, etc.
                 val request = Request.Builder()
-                    .url("$API_URL/logements")
-                    .get()
+                    .url("$API_URL/logements")  // Route publique du serveur qui retourne les logements
+                    .get()  // Méthode GET (juste récupérer des données)
                     .build()
 
-                // Envoie la requete et recupere la reponse
+                // Envoyer la requête et attendre la réponse du serveur
                 val response = client.newCall(request).execute()
 
                 // Lit le contenu de la reponse
@@ -156,25 +186,37 @@ class LogementsActivity : AppCompatActivity() {
         }
     }
 
-    // Fonction qui supprime un logement via l'API
+    /*
+     * deleteLogement() - Supprime un logement du serveur
+     * 
+     * Cette fonction :
+     * - Récupér le token JWT sauvegardé dans SharedPreferences
+     * - Envoie une requête DELETE au serveur avec le token JWT
+     * - Supprime le logement de la liste affichée si la suppression réussit
+     * - Met à jour l'affichage de la liste
+     */
     private fun deleteLogement(logementId: Int, position: Int) {
 
         // Lance une tache en arriere-plan
         CoroutineScope(Dispatchers.IO).launch {
 
             try {
-                // Cree la requete HTTP DELETE vers la route admin/logements/:id
-                // Recupere le token sauvegarde lors de la connexion
+                // ========== GESTION DU TOKEN JWT ==========
+                // Récupérer le token JWT sauvegardé lors de la connexion (voir LoginActivity)
+                // Ce token prouve au serveur qu'on est identifié et qu'on a le droit de supprimer un logement
                 val prefs = getSharedPreferences("admin_prefs", MODE_PRIVATE)
                 val token = prefs.getString("token", "") ?: ""
 
-// Cree la requete HTTP DELETE vers la route admin/logements/:id
+                // ========== APPEL OkHttp ==========
+                // Créer une requête HTTP DELETE pour supprimer le logement
                 val request = Request.Builder()
-                    .url("$API_URL/admin/logements/$logementId")
+                    .url("$API_URL/admin/logements/$logementId")  // Route du serveur avec l'ID du logement à supprimer
+                    // Ajouter le token pour prouver l'authentification
+                    // Format : "Bearer <token>" (Bearer = type de token, JWT = format du token)
                     .addHeader("Authorization", "Bearer $token")
-                    .delete()
+                    .delete()  // Méthode DELETE (supprimer une ressource)
                     .build()
-                // Envoie la requete et recupere la reponse
+                // Envoyer la requête et attendre la réponse du serveur
                 val response = client.newCall(request).execute()
 
                 // Revient sur le thread principal pour modifier l'interface

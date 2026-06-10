@@ -25,7 +25,19 @@ import okhttp3.Request
 // Import pour lire le JSON
 import org.json.JSONArray
 
-// Classe qui gere la page des utilisateurs
+/*
+ * UsersActivity
+ * 
+ * Cette classe affiche la liste de tous les utilisateurs enregistrés
+ * dans l'application, et permet de les supprimer en appuyant longtemps dessus.
+ * 
+ * Son rôle :
+ * - Charger la liste des utilisateurs depuis l'API du serveur
+ * - Afficher chaque utilisateur avec son nom et email
+ * - Permettre de supprimer un utilisateur avec un clic long
+ * - Gérer le token JWT pour s'authentifier auprès du serveur
+ * - Utiliser SharedPreferences pour stocker et récupérer le token
+ */
 class UsersActivity : AppCompatActivity() {
 
     // Declaration des elements de l'interface
@@ -45,7 +57,15 @@ class UsersActivity : AppCompatActivity() {
     // Client HTTP pour faire les requetes vers l'API
     private val client = OkHttpClient()
 
-    // Fonction appelee automatiquement quand la page se cree
+    /*
+     * onCreate() - Fonction appelée automatiquement au démarrage de la page
+     * 
+     * Cette fonction :
+     * - Charge l'interface graphique
+     * - Récupère les éléments (liste, message, bouton retour)
+     * - Définit le comportement du clic long sur les utilisateurs pour les supprimer
+     * - Lance le chargement de la liste des utilisateurs depuis l'API
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -62,30 +82,39 @@ class UsersActivity : AppCompatActivity() {
             finish()
         }
 
-        // Quand on clique longtemps sur un utilisateur - propose de le supprimer
+        // Quand l'utilisateur clique longtemps sur un utilisateur de la liste
         listViewUsers.setOnItemLongClickListener { _, _, position, _ ->
-            // Recupere le nom de l'utilisateur selectionne
+            // Récupérer le nom de l'utilisateur à la position cliquée
             val userName = usersList[position]
-            // Recupere l'identifiant de l'utilisateur selectionne
+            // Récupérer l'ID de l'utilisateur (important pour le supprimer)
             val userId = usersIds[position]
 
-            // Affiche une boite de dialogue de confirmation
+            // Afficher une boîte de dialogue (popup) pour confirmer la suppression
             AlertDialog.Builder(this)
                 .setTitle("Supprimer l'utilisateur")
                 .setMessage("Voulez-vous supprimer $userName ?")
                 .setPositiveButton("Supprimer") { _, _ ->
+                    // Si l'utilisateur clique sur "Supprimer", appeler la fonction deleteUser
                     deleteUser(userId, position)
                 }
-                .setNegativeButton("Annuler", null)
+                .setNegativeButton("Annuler", null)  // Annuler la suppression
                 .show()
-            true
+            true  // Indiquer que le clic long a été traité
         }
 
         // Charge la liste des utilisateurs au demarrage
         loadUsers()
     }
 
-    // Fonction qui charge tous les utilisateurs depuis l'API
+    /*
+     * loadUsers() - Charge la liste de tous les utilisateurs depuis l'API
+     * 
+     * Cette fonction :
+     * - Récupére le token JWT sauvegardé dans SharedPreferences
+     * - Envoie une requête GET au serveur avec le token dans le header "Authorization"
+     * - Traite la réponse JSON pour extraire les infos de chaque utilisateur
+     * - Affiche la liste dans l'interface
+     */
     private fun loadUsers() {
 
         // Affiche le message de chargement
@@ -95,17 +124,24 @@ class UsersActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
 
             try {
-                // Cree la requete HTTP GET vers la route admin/users
+                // ========== GESTION DU TOKEN JWT ==========
+                // Avant de faire la requête, récupérer le token JWT sauvegardé lors de la connexion
+                // Ce token prouve au serveur qu'on a le droit d'accéder à ces données
                 val prefs = getSharedPreferences("admin_prefs", MODE_PRIVATE)
                 val token = prefs.getString("token", "") ?: ""
 
+                // ========== APPEL OkHttp ==========
+                // Créer une requête HTTP GET pour charger les utilisateurs
+                // OkHttpClient gère les connexions, les données réseau, etc.
                 val request = Request.Builder()
-                    .url("$API_URL/admin/users")
+                    .url("$API_URL/admin/users")  // Route du serveur qui retourne la liste des utilisateurs
+                    // Ajouter le token dans le header Authorization (obligatoire pour cette API)
+                    // Format : "Bearer <token>" (Bearer = type de token)
                     .addHeader("Authorization", "Bearer $token")
-                    .get()
+                    .get()  // Méthode GET (juste récupérer des données, pas en envoyer)
                     .build()
 
-                // Envoie la requete et recupere la reponse
+                // Envoyer la requête et attendre la réponse du serveur
                 val response = client.newCall(request).execute()
 
                 // Lit le contenu de la reponse
@@ -162,25 +198,36 @@ class UsersActivity : AppCompatActivity() {
         }
     }
 
-    // Fonction qui supprime un utilisateur via l'API
+    /*
+     * deleteUser() - Supprime un utilisateur du serveur
+     * 
+     * Cette fonction :
+     * - Envoie une requête DELETE au serveur avec le token JWT
+     * - Supprime l'utilisateur de la liste affichée si la suppression réussit
+     * - Met à jour l'affichage de la liste
+     */
     private fun deleteUser(userId: Int, position: Int) {
 
         // Lance une tache en arriere-plan
         CoroutineScope(Dispatchers.IO).launch {
 
             try {
-                // Recupere le token sauvegarde lors de la connexion
+                // ========== GESTION DU TOKEN JWT ==========
+                // Récupérer le token JWT sauvegardé lors de la connexion (voir LoginActivity)
+                // Ce token est nécessaire pour prouver qu'on a le droit de supprimer un utilisateur
                 val prefs = getSharedPreferences("admin_prefs", MODE_PRIVATE)
                 val token = prefs.getString("token", "") ?: ""
 
-// Cree la requete HTTP DELETE vers la route admin/users/:id
+                // ========== APPEL OkHttp ==========
+                // Créer une requête HTTP DELETE pour supprimer l'utilisateur
                 val request = Request.Builder()
-                    .url("$API_URL/admin/users/$userId")
+                    .url("$API_URL/admin/users/$userId")  // Route du serveur avec l'ID de l'utilisateur à supprimer
+                    // Ajouter le token pour prouver l'authentification
                     .addHeader("Authorization", "Bearer $token")
-                    .delete()
+                    .delete()  // Méthode DELETE (supprimer une ressource)
                     .build()
 
-                // Envoie la requete et recupere la reponse
+                // Envoyer la requête et attendre la réponse du serveur
                 val response = client.newCall(request).execute()
 
                 // Revient sur le thread principal pour modifier l'interface
